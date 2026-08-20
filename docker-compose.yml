@@ -1,0 +1,37 @@
+services:
+
+  oc-db:
+    image: postgres:13
+    container_name: oc-db
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - oc-db-data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d:ro
+    networks:
+      - oc-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  oc:
+    build: .
+    container_name: oc
+    ports:
+      - "8080:8080"
+    volumes:
+      - oc-data:/usr/local/tomcat/openclinica.data
+    networks:
+      - oc-net
+    depends_on:
+      oc-db:
+        condition: service_healthy
+
+networks:
+  oc-net:
+
+volumes:
+  oc-db-data:
+  oc-data:
