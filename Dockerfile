@@ -10,9 +10,11 @@ FROM maven:3.8-openjdk-11 AS builder
 
 WORKDIR /build
 
-RUN apt-get update -qq && apt-get install -y --no-install-recommends git && \
+COPY fix_servlet.py /tmp/fix_servlet.py
+RUN apt-get update -qq && apt-get install -y --no-install-recommends git python3-minimal && \
     git clone --depth=1 --branch 3.17.2 \
         https://github.com/OpenClinica/OpenClinica.git . && \
+    python3 /tmp/fix_servlet.py && \
     mvn clean package -DskipTests --no-transfer-progress \
         -DdbType=postgres \
         -DdbUser=clinica \
