@@ -18,7 +18,7 @@ t = t.replace(
     '                String s = ((NewCRFBean) session.getAttribute("nib")).getVersionName();',
     '                NewCRFBean nib = (NewCRFBean) session.getAttribute("nib");\n'
     '                if (nib == null) {\n'
-    '                    Validator.addError(errors, "excel_file", resword.getString("spreadsheet_format_is_wrong"));\n'
+    '                    Validator.addError(errors, "excel_file", resword.getString("you_have_to_provide_spreadsheet"));\n'
     '                    request.setAttribute("formMessages", errors);\n'
     '                    forwardPage(Page.CREATE_CRF_VERSION);\n'
     '                    return;\n'
@@ -37,3 +37,12 @@ t = t.replace(
 
 f.write_text(t)
 print("CreateCRFVersionServlet patched")
+
+# Fix CoreSecureController: remove hardcoded Content-Encoding: gzip header.
+# CoreSecureController sets this header but the body is never actually compressed —
+# it relied on CompressingFilter to do the compression, which we removed.
+g = pathlib.Path('web/src/main/java/org/akaza/openclinica/control/core/CoreSecureController.java')
+u = g.read_text()
+u = u.replace('        response.setHeader("Content-Encoding", "gzip");\n', '', 1)
+g.write_text(u)
+print("CoreSecureController patched")
